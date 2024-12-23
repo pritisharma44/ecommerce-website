@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom"; 
 import ProductList from "../pages/ishop/ProductList"; 
-import heroImage from "../assets/hero-image.jpg"; 
+import heroImage from "../assets/banner.avif"; 
 
 export default function Home() {
   return (
