@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import reducerNameSlice from './reducers/reducerNameSlice';
+import productReducer from './reducers/productSlice'; 
 
 const store = configureStore({
   reducer: {
-    message: reducerNameSlice,
+    products: productReducer,
   },
 });
 
