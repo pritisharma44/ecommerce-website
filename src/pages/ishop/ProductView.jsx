@@ -4,14 +4,19 @@ import { Link, useParams } from "react-router-dom";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
 import ProductReview from "./ProductReview";
-import { viewProduct } from "../../redux/reducers/productSlice";
+import { viewProduct,addToCart } from "../../redux/reducers/productSlice";
+import { useNavigate } from 'react-router-dom'; 
 
 const ProductView = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate(); 
 
   // Access product data from Redux store
   const { selectedProduct: product, loading, error } = useSelector((state) => state.products);
+
+  const cartStatus = useSelector((state) => state.products.cartStatus);
+  const cartError = useSelector((state) => state.products.cartError);
 
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [currentImage, setCurrentImage] = useState("");
@@ -24,14 +29,14 @@ const ProductView = () => {
   // Set default selected variant and image when the product data is loaded
   useEffect(() => {
     if (product && product.variants.length > 0) {
-      const defaultVariant = product.variants[0]; // First variant
+      const defaultVariant = product.variants[0]; 
       setSelectedVariant(defaultVariant);
-      setCurrentImage(defaultVariant.image); // Set the default image
+      setCurrentImage(defaultVariant.image); 
     }
   }, [product]);
 
-  const handleColorChange = (color) => {
-    const newVariant = product.variants.find((variant) => variant.color === color);
+  const handleColorChange = (selectedColorId) => {
+    const newVariant = product.variants.find((variant) => variant.id === selectedColorId);
     setSelectedVariant(newVariant);
     setCurrentImage(newVariant.image);
   };
@@ -39,7 +44,18 @@ const ProductView = () => {
   const handleSizeChange = (size) => {
     setSelectedSize(size);
   };
-
+  const handleAddToCart = () => {
+    dispatch(addToCart({
+      product_variant_id: selectedVariant.id,
+      quantity: 1, 
+      size: selectedSize,  
+    }));
+  };
+  useEffect(() => {
+    if (cartStatus === 'succeeded') {
+      navigate('/cart'); 
+    }
+  }, [cartStatus, navigate]); 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
@@ -105,11 +121,11 @@ const ProductView = () => {
                   <button
                     key={variant.id}
                     className={`py-2 px-4 rounded-lg font-semibold transition ${
-                      selectedVariant && selectedVariant.color === variant.color
+                      selectedVariant && selectedVariant.id === variant.id
                         ? "bg-yellow-500 text-black"
                         : "bg-gray-200 text-gray-700"
                     }`}
-                    onClick={() => handleColorChange(variant.color)}
+                    onClick={() => handleColorChange(variant.id)}
                   >
                     {variant.color}
                   </button>
@@ -139,9 +155,10 @@ const ProductView = () => {
 
             {/* Actions */}
             <div className="flex space-x-4">
-              <button className="bg-yellow-500 text-black py-2 px-6 rounded-lg font-semibold hover:bg-yellow-400 transition">
-                Add to Cart
+              <button className="bg-yellow-500 text-black py-2 px-6 rounded-lg font-semibold hover:bg-yellow-400 transition" onClick={handleAddToCart} disabled={cartStatus === 'loading'}>
+              {cartStatus === 'loading' ? 'Adding...' : 'Add to Cart'}
               </button>
+              {cartError && <p style={{ color: 'red' }}>{cartError}</p>}
               <button className="bg-gray-800 text-white py-2 px-6 rounded-lg font-semibold hover:bg-gray-700 transition">
                 Buy Now
               </button>
